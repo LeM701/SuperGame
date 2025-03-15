@@ -1,68 +1,48 @@
 <?php
-class ModelJoueurs {
-    private int $id;
-    private string $pseudo;
-    private string $email;
-    private int $score;
+declare(strict_types=1);
+
+class ModelPlayers {
     private PDO $bdd;
 
-        public function __construct() {
-        $this->bdd = new PDO('mysql:host=localhost;dbname=supergame', 'root', '');
-        $this->bdd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    }
-    public function getId(): int {
-        return $this->id;
-    }
-    public function getPseudo(): string {
-        return $this->pseudo;
-    }
-    public function getEmail(): string {
-        return $this->email;
-    }
-    public function getScore(): int {
-        return $this->score;
-    }
-    public function setPseudo(string $pseudo) {
-        $this->pseudo = $pseudo;
-    }
-    public function setEmail(string $email) {
-        $this->email = $email;
-    }
-    public function setScore(int $score) {
-        $this->score = $score;
+    public function __construct() {
+        require_once 'env.php';
+        
+        $this->bdd = new PDO(
+            "mysql:host={$_ENV['DBhost']};dbname={$_ENV['DBname']};charset=utf8",
+            $_ENV['login'],
+            $_ENV['password'],
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ]
+        );
     }
 
-    public function addJoueur(string $pseudo, string $email, int $score): string {
+    public function addPlayer(string $pseudo, string $email, int $score): void {
+        $this->bdd->beginTransaction();
         try {
-            $stmt = $this->bdd->prepare("SELECT * FROM joueurs WHERE pseudo = :pseudo OR email = :email");
-            $stmt->bindParam(':pseudo', $pseudo);
-            $stmt->bindParam(':email', $email);
-            $stmt->execute();
-    
-            if ($stmt->rowCount() > 0) {
-                return "Erreur : un joueur avec le même pseudo ou email existe déjà.";
+            // Duplicate check
+            $stmt = $this->bdd->prepare("SELECT COUNT(id) FROM joueurs WHERE pseudo = ? OR email = ?");
+            $stmt->execute([$pseudo, $email]);
+            if ($stmt->fetchColumn() > 0) {
+                throw new RuntimeException('Ce pseudo ou email est déjà utilisé.');
             }
 
-            $stmt = $this->bdd->prepare("INSERT INTO joueurs (pseudo, email, score) VALUES (:pseudo, :email, :score)");
-            $stmt->bindParam(':pseudo', $pseudo);
-            $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':score', $score);
-            $stmt->execute();
-    
-            return "Joueur ajouté avec succès";
+            // Insertion
+            $stmt = $this->bdd->prepare("INSERT INTO joueurs (pseudo, email, score) VALUES (?, ?, ?)");
+            $stmt->execute([$pseudo, $email, $score]);
+            
+            $this->bdd->commit();
         } catch (PDOException $e) {
-            return "Erreur lors de l'ajout du joueur : " . $e->getMessage();
+            $this->bdd->rollBack();
+            throw new RuntimeException('Erreur de base de données: ' . $e->getMessage());
         }
     }
-    public function getJoueurs(): array {
-        $stmt = $this->bdd->query("SELECT pseudo, email, score FROM joueurs");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    public function getJoueurByPseudo(string $pseudo): array {
-        $stmt = $this->bdd->prepare("SELECT * FROM joueurs WHERE pseudo = :pseudo");
-        $stmt->bindParam(':pseudo', $pseudo);
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+
+    public function getPlayer(): array {
+        $stmt = $this->bdd->query("SELECT pseudo, email, score FROM joueurs ORDER BY score DESC");
+        return $stmt->fetchAll() ?: [];
     }
 }
 ?>

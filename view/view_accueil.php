@@ -1,38 +1,68 @@
-<main>
-
-    <section>
-    <h2>Enregistrer un nouveau joueur</h2>
-    <form action="index.php" method="post">
-        <label for="pseudo">Pseudo :</label>
-        <input type="text" id="pseudo" name="pseudo" required><br>
-        <label for="email">Email :</label>
-        <input type="email" id="email" name="email" required><br>
-        <label for="score">Score :</label>
-        <input type="number" id="score" name="score" required><br>
-        <input type="submit" name="submit" value="Enregistrer">
-    </form>
-    </section>
-<section>
-    <h2>Liste des joueurs</h2>
-    <table>
-        <tr>
-            <th>Pseudo</th>
-            <th>Email</th>
-            <th>Score</th>
-        </tr>
-        <?php
-        require_once 'model/model_joueurs.php';
-        $model = new ModelJoueurs();
-        $joueurs = $model->getJoueurs();
+<section class="form-section">
+    <h2>Ajouter un joueur</h2>
+    <form method="post">
+        <!-- CSRF token for security -->
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
         
-        foreach ($joueurs as $joueur) {
-            echo "<tr>";
-            echo "<td>" . htmlspecialchars($joueur['pseudo']) . "</td>";
-            echo "<td>" . htmlspecialchars($joueur['email']) . "</td>";
-            echo "<td>" . htmlspecialchars($joueur['score']) . "</td>";
-            echo "</tr>";
-        }
-        ?>
+        <div class="form-group">
+            <label for="pseudo">Pseudo :</label>
+            <!-- Username input with validation -->
+            <input type="text" id="pseudo" name="pseudo" 
+                   required
+                   pattern="\w{3,20}"
+                   placeholder="3-20 caractères">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <!-- Email input HTML validation -->
+            <input type="email" id="email" name="email" 
+                   placeholder="123456@exemple.com"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label for="score">Score:</label>
+            <!-- Score input -->
+            <input type="number" id="score" name="score" 
+                   required
+                   min="0" 
+                   max="10000"
+                   step="1"
+                   placeholder="0-10000">
+        </div>
+
+        <!-- Submit button -->
+        <button type="submit" name="submit">Enregistrer</button>
+    </form>
+</section>
+
+<section>
+    <h2>Classement Actuel</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Pseudo</th>
+                <th>Email</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (!empty($joueurs)): ?>
+                <?php foreach ($joueurs as $joueur): ?>
+                    <tr>
+                        <!-- Sanitized player data -->
+                        <td><?= htmlspecialchars($joueur['pseudo']) ?></td>
+                        <td><?= htmlspecialchars($joueur['email']) ?></td>
+                        <td><?= number_format($joueur['score'], 0, '', ' ') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <!-- Message if no players are registered -->
+                <tr>
+                    <td colspan="3" class="no-data">Aucun joueur enregistré</td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
     </table>
-    </section>
-</main>
+</section>
