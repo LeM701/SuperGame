@@ -2,7 +2,7 @@
 declare(strict_types=1);
 session_start();
 
-require_once 'model/model_joueurs.php';
+require_once 'models/model_players.php';
 require_once 'utils/utils.php';
 
 // Initialization of variables
@@ -64,7 +64,7 @@ try {
 $message = $_SESSION['flash'] ?? $message;
 unset($_SESSION['flash']);
 
-include 'view/header.php';
-include 'view/view_accueil.php';
-include 'view/footer.php';
+include 'views/view_header.php';
+include 'views/view_home.php';
+include 'views/view_footer.php';
 ?>
