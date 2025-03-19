@@ -2,8 +2,10 @@
 declare(strict_types=1);
 
 function sanitize(string $data): string {
-    // Clean up input data to prevent XSS attacks
-    return htmlspecialchars(trim($data), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $data = trim($data);
+    $data = strip_tags($data);
+    $data = htmlspecialchars($data, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return $data;
 }
 
 function validatePseudo(string $pseudo): bool {
