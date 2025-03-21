@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+// Sanitize the data
 function sanitize(string $data): string {
     $data = trim($data);
     $data = strip_tags($data);

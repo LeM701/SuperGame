@@ -4,6 +4,7 @@ declare(strict_types=1);
 class ModelPlayers {
     private PDO $bdd;
 
+    // Connection to the database
     public function __construct() {
         require_once 'env.php';
         
@@ -19,6 +20,7 @@ class ModelPlayers {
         );
     }
 
+    // Add a player to the database
     public function addPlayer(string $pseudo, string $email, int $score): void {
         $this->bdd->beginTransaction();
         try {
@@ -40,6 +42,7 @@ class ModelPlayers {
         }
     }
 
+    // Retrieve the list of players
     public function getPlayer(): array {
         $stmt = $this->bdd->query("SELECT pseudo, email, score FROM joueurs ORDER BY score DESC");
         return $stmt->fetchAll() ?: [];
